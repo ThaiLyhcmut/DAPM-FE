@@ -14,7 +14,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 export default function ForgotScreen() {
   const [otp, setOtp] = useState(['', '', '', '']);
-
+  const [email, setEmail] = useState<string>("")
+  const [phone, setPhone] = useState<string>("")
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>
@@ -28,10 +29,10 @@ export default function ForgotScreen() {
 
           <View style={introStyles.main}>
             {/* Email */}
-            <Input text='Email' placeholder='melissa@gmail.com' keyboardType='email-address' />
+            <Input text='Email' placeholder='melissa@gmail.com' keyboardType='email-address' setText={setEmail} value={email} />
 
             {/* Phone Number */}
-            <Input text='Phone number' placeholder='0123456789' keyboardType='phone-pad' />
+            <Input text='Phone number' placeholder='0123456789' keyboardType='phone-pad' setText={setPhone} value={phone}/>
 
             <Otp />
             

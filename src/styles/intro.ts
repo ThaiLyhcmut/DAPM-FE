@@ -156,4 +156,10 @@ export const introStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  errorText: {
+    color: 'red',
+    marginTop: 5,
+    marginBottom: 10,
+    textAlign: 'center'
+  },
 });

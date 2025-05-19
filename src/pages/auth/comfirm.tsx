@@ -12,6 +12,8 @@ import { Header } from '../../components/intro/header';
 import { Otp, Password } from '../../components/intro/input';
 
 export const ConfirmScreen = () => {
+  const [password, setPassword] = useState<string>("")
+  const [confirmPassword, setConfimPassword] = useState<string>("")
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>
@@ -21,10 +23,10 @@ export const ConfirmScreen = () => {
         <View style={introStyles.mainOtp}>
           {/* Instruction Text */}
           
-          <Password text='Password '/>
+          <Password text='Password ' setText={setPassword} value={password}/>
 
-          <Password text='Password confirm  '/>
-
+          <Password text='Password confirm  ' setText={setConfimPassword} value={confirmPassword}/>
+ 
           {/* Sign Up Button */}
           <TouchableOpacity style={introStyles.signUpButton}>
             <Text style={introStyles.signUpButtonText}>Confirm</Text>

@@ -1,13 +1,17 @@
-import { KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from "react-native"
-import { introStyles } from "../../styles/intro"
+import { KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { introStyles } from "../../styles/intro";
+import { useState } from "react";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface InputProps {
   text: string;
   placeholder: string,
-  keyboardType: KeyboardTypeOptions | undefined
+  keyboardType: KeyboardTypeOptions | undefined,
+  setText: (text: string) => void
+  value: any
 }
 
-export const Input = ({ text, placeholder, keyboardType }: InputProps) => {
+export const Input = ({ text, placeholder, keyboardType, setText, value }: InputProps) => {
   return (
     <>
       <Text style={introStyles.label}>{text}</Text>
@@ -15,19 +19,22 @@ export const Input = ({ text, placeholder, keyboardType }: InputProps) => {
         style={introStyles.input}
         placeholder={placeholder}
         keyboardType={keyboardType}
+        onChangeText={(e: any) => setText(e)}
         placeholderTextColor="#9CA3AF"
+        value={value}
       />
     </>
   )
 }
 
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useState } from "react";
+
 interface PasswordProps {
   text: string;
+  setText: (text: string) => void;
+  value: string;
 }
 
-export const Password = ({ text }: PasswordProps) => {
+export const Password = ({ text, setText, value }: PasswordProps) => {
   const [showPassword, setShowPassword] = useState(false);
   return (
     <>
@@ -38,6 +45,8 @@ export const Password = ({ text }: PasswordProps) => {
           placeholder="********"
           secureTextEntry={!showPassword}
           placeholderTextColor="#9CA3AF"
+          onChangeText={(text) => setText(text)}
+          value={value}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#4B5563" />
@@ -47,7 +56,11 @@ export const Password = ({ text }: PasswordProps) => {
   )
 }
 
-export const Otp = () => {
+interface OtpProps {
+  onComplete?: (otp: string) => void;
+}
+
+export const Otp = ({ onComplete }: OtpProps) => {
   const [otp, setOtp] = useState(['', '', '', '']);
 
   const handleNumberPress = (number: string) => {
@@ -56,6 +69,12 @@ export const Otp = () => {
     if (emptyIndex !== -1) {
       newOtp[emptyIndex] = number;
       setOtp(newOtp);
+      
+      // Check if OTP is complete
+      if (emptyIndex === 3 && onComplete) {
+        const fullOtp = newOtp.join('');
+        onComplete(fullOtp);
+      }
     }
   };
 
