@@ -13,7 +13,7 @@ const foodItems = [
   { name: 'Gà Rang Gừng', image: 'https://example.com/ga-rang-gung.jpg', time: '25 min', rating: 4.5, price: '129.000 đ' },
 ];
 
-const FoodList = ({ category = 'Chicken' }) => {
+const CategoriesListScreen = ({ category = 'Chicken' }) => {
   const renderItem = ({ item }: {item: any}) => (
     <View style={styles.card}>
       <Image source={{ uri: item.image }} style={styles.image} />
@@ -98,4 +98,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FoodList;
+export default CategoriesListScreen;

@@ -20,7 +20,7 @@ const initialCartItems = [
   { id: '3', name: 'Gà Sốt Chanh Dây', image: 'https://example.com/ga-sot-chanh.jpg', price: 139000, quantity: 1 },
 ];
 
-const Cart = () => {
+const CartScreen = () => {
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(10000); // Giả định thuế cố định
@@ -388,4 +388,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Cart;
+export default CartScreen;

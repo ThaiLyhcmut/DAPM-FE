@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Sử dụng Ionicons cho các biểu tượng
+import Icon from 'react-native-vector-icons/Ionicons';
+import { RouteProp } from '@react-navigation/native';
+import type { HomeStackParamList } from '../../../navigate';
 
 const { width } = Dimensions.get('window');
 
-const FoodDetail = ({ item }: {item: any}) => {
+type CategoryDetailScreenRouteProp = RouteProp<HomeStackParamList, 'CategoryDetail'>;
+
+type Props = {
+  route: CategoryDetailScreenRouteProp;
+};
+
+const CategoryDetailScreen = ({ route }: Props) => {
+  const { item } = route.params;
   const [quantity, setQuantity] = useState(1);
 
   const handleIncrease = () => setQuantity(quantity + 1);
@@ -141,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FoodDetail;
+export default CategoryDetailScreen;

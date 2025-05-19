@@ -40,7 +40,7 @@ const bestSales = [
 ];
 
 
-const Home = () => {
+const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Header />
@@ -50,7 +50,6 @@ const Home = () => {
         <List Data={sales} text='sales'/>
         <List Data={bestSales} text='bestSales'/>
       </ScrollView>
-      <BottomNavigation />
     </View>
   );
 };
@@ -62,4 +61,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default HomeScreen;

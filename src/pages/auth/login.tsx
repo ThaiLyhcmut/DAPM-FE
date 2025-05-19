@@ -11,10 +11,16 @@ import { FullWindowOverlay } from 'react-native-screens';
 import { introStyles } from '../../styles/intro';
 import { Header } from '../../components/intro/header'; 
 import { Input, Password } from '../../components/intro/input';
+import { useNavigation } from '@react-navigation/native';
+
+
 
 export default function LoginScreen() {
-
-
+  const navigate = useNavigation<any>()
+  const handleLogin = () => {
+    console.log("100")
+    navigate.replace('Main') // Replace the current screen with Main screen which contains tabs
+  }
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>
@@ -28,7 +34,7 @@ export default function LoginScreen() {
             Don’t you have an account?{' '}
             <Text style={introStyles.signupLink}>Sign up</Text>
           </Text>
-          <TouchableOpacity style={introStyles.Button}>
+          <TouchableOpacity style={introStyles.Button} onPress={handleLogin}>
             <Text style={introStyles.ButtonText}>Login</Text>
           </TouchableOpacity>
         </View>

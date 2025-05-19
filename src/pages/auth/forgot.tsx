@@ -12,7 +12,7 @@ import { Header } from '../../components/intro/header';
 import { Input, Otp } from '../../components/intro/input';
 import { ScrollView } from 'react-native-gesture-handler';
 
-export default function ForgetPasswordScreen() {
+export default function ForgotScreen() {
   const [otp, setOtp] = useState(['', '', '', '']);
 
   return (

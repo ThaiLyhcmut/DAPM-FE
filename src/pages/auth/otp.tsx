@@ -10,12 +10,18 @@ import {
 import { introStyles } from '../../styles/intro';
 import { Header } from '../../components/intro/header';
 import { Otp } from '../../components/intro/input';
+import { RouteProp } from '@react-navigation/native';
+import type { AuthStackParamList } from '../../../navigate';
 
-interface OtpProps {
-  phone: string //+994 (50) **** 67 
-}
+type OTPScreenRouteProp = RouteProp<AuthStackParamList, 'OTP'>;
 
-export const OTPScreen = ({phone}: OtpProps) => {
+type Props = {
+  route: OTPScreenRouteProp;
+};
+
+export const OTPScreen = ({ route }: Props) => {
+  const { phone } = route.params;
+
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>

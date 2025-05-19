@@ -24,7 +24,7 @@ const members = [
   { id: '4', name: 'Jack', avatar: 'https://via.placeholder.com/30' },
 ];
 
-const DetailScreen = () => {
+const HistoryDetailScreen = () => {
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.itemRow}>
       <Text style={styles.itemName}>{item.name}</Text>
@@ -188,4 +188,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DetailScreen;
+export default HistoryDetailScreen;

@@ -11,7 +11,7 @@ import { introStyles } from '../../styles/intro';
 import { Header } from '../../components/intro/header';
 import { Otp, Password } from '../../components/intro/input';
 
-export const Comfirm = () => {
+export const ConfirmScreen = () => {
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>

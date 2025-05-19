@@ -42,7 +42,6 @@ const HistoryScreen = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.transactionList}
       />
-      <BottomNavigation />
     </View>
     
   );
