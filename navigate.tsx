@@ -42,9 +42,13 @@ export type AuthStackParamList = {
 
 export type HomeStackParamList = {
   HomeMain: undefined;
-  CategoryList: undefined;
+  CategoryList: {
+    _id: string
+    category: string
+  };
   CategoryDetail: {
     item: {
+      _id: string;
       image: string;
       name: string;
       time: string;
@@ -54,29 +58,33 @@ export type HomeStackParamList = {
   };
 };
 
-type PlaceStackParamList = {
-  PlaceSelection: undefined;
-};
 
-type HistoryStackParamList = {
+export type HistoryStackParamList = {
   HistoryList: undefined;
-  HistoryDetail: undefined;
+  HistoryDetail: {
+    item: any
+  };
 };
 
 type TabParamList = {
   Home: undefined;
-  Place: undefined;
   Cart: undefined;
   History: undefined;
   Profile: undefined;
 };
 
+export type CartStackParamList = {
+  Cart: undefined;
+  Place: undefined;
+  Payment: undefined;
+}
+
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
 const AuthStack = createStackNavigator<AuthStackParamList>();
 const HomeStack = createStackNavigator<HomeStackParamList>();
-const PlaceStack = createStackNavigator<PlaceStackParamList>();
 const HistoryStack = createStackNavigator<HistoryStackParamList>();
+const CartStack = createStackNavigator<CartStackParamList>();
 
 // Stack cho xác thực
 function AuthStackScreen() {
@@ -104,12 +112,13 @@ function HomeStackScreen() {
   );
 }
 
-// Stack cho place
-function PlaceStackScreen() {
+function CartStackScreen() {
   return (
-    <PlaceStack.Navigator>
-      <PlaceStack.Screen name="PlaceSelection" component={PlaceScreen} options={{ headerShown: false }} />
-    </PlaceStack.Navigator>
+    <CartStack.Navigator>
+      <CartStack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
+      <CartStack.Screen name="Place" component={PlaceScreen} />
+      <CartStack.Screen name="Payment" component={PaymentScreen} />
+    </CartStack.Navigator>
   );
 }
 
@@ -130,7 +139,9 @@ export default function MainStack() {
   return (
     <>
       {isSignedIn ? (
-        <Stack.Navigator>
+        <Stack.Navigator
+          
+        >
           <Stack.Screen 
             name="Main" 
             component={MainTabs} 
@@ -151,13 +162,12 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = 'home-outline';
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Place') {
-            iconName = focused ? 'location' : 'location-outline';
           } else if (route.name === 'Cart') {
             iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'History') {
@@ -169,6 +179,7 @@ function MainTabs() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
+
     >
       <Tab.Screen 
         name="Home" 
@@ -176,13 +187,8 @@ function MainTabs() {
         options={{ tabBarLabel: 'Trang chủ' }}
       />
       <Tab.Screen 
-        name="Place" 
-        component={PlaceStackScreen} 
-        options={{ tabBarLabel: 'Khu vực' }}
-      />
-      <Tab.Screen 
         name="Cart" 
-        component={CartScreen} 
+        component={CartStackScreen} 
         options={{ tabBarLabel: 'Giỏ hàng' }}
       />
       <Tab.Screen 

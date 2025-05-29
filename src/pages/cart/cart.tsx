@@ -11,182 +11,213 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; // Sử dụng Ionicons cho biểu tượng
+import Header from '../../components/header/header';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CartStackParamList } from '../../../navigate';
 
 const { width } = Dimensions.get('window');
 
-const initialCartItems = [
-  { id: '1', name: 'Gà Chiên Mắm', image: 'https://example.com/ga-chien-mam.jpg', price: 139000, quantity: 2 },
-  { id: '2', name: 'Gà Quay', image: 'https://example.com/ga-quay.jpg', price: 139000, quantity: 1 },
-  { id: '3', name: 'Gà Sốt Chanh Dây', image: 'https://example.com/ga-sot-chanh.jpg', price: 139000, quantity: 1 },
-];
-
 const CartScreen = () => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const navigation = useNavigation<NativeStackNavigationProp<CartStackParamList>>();
+  const cartItems: any[] = useSelector((state: any) => state.cart.items);
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(10000); // Giả định thuế cố định
   const [note, setNote] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState('');
-  const [members, setMembers] = useState<any>([]); // Danh sách thành viên
-
+  const cart = useSelector((state: any) => state.cart);
+   const [members, setMembers] = useState<any>(cart.friendsList); // Danh sách thành viên
+  const dispatch = useDispatch();
   // Tính toán subtotal mỗi khi cartItems thay đổi
   useEffect(() => {
-    const calculatedSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const calculatedSubtotal = cartItems.reduce((sum, item) => {
+      console.log('Item:', item);
+      if (!item.price) return sum;
+      const price = parseInt((item.price as string).replace(/\D/g, '')) || 0;
+      console.log('Price:', price, 'Quantity:', item.quantity);
+      return sum + price * item.quantity;
+    }, 0);
+
     setSubtotal(calculatedSubtotal);
+    dispatch({ type: 'SET_TOTAL_PRICE', payload: calculatedSubtotal });
   }, [cartItems]);
 
-  const handleIncrease = (id: any) => {
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    ));
+  const handleIncrease = (_id: string) => {
+    dispatch({ type: 'ADD_TO_CART', payload: { _id, quantity: 1 } });
   };
 
-  const handleDecrease = (id: any) => {
-    setCartItems(cartItems.map(item => 
-      item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
-    ));
+  const handleDecrease = (_id: string) => {
+    dispatch({ type: 'ADD_TO_CART', payload: { _id, quantity: -1 } });
   };
 
-  const handleRemove = (id: any) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+  const handleRemove = (_id: string) => {
+    dispatch({ type: 'REMOVE_FROM_CART', payload: { _id } });
   };
 
   const handleAddMember = () => {
     if (email.trim()) {
-      setMembers([...members, { id: members.length.toString(), email, name: email.split('@')[0] }]);
+      const exitsEmail = members.find((member: any) => member.email === email);
+      if (exitsEmail) {
+        alert('Email already exists in the list');
+        return;
+      }
+      setMembers([...members, { email: email, name: email.split('@')[0] }]);
+      dispatch({ type: 'ADD_FRIEND', payload: email });
       setEmail('');
       setModalVisible(false);
     }
   };
 
-  const handleRemoveMember = (id: any) => {
-    setMembers(members.filter((member: any) => member.id !== id));
+  const handleRemoveMember = (email: string) => {
+    setMembers(members.filter((member: any) => member.email !== email));
+    dispatch({ type: 'REMOVE_FRIEND', payload: email });
   };
 
   const formatPrice = (price: any) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
   };
 
-  const renderCartItem = ({ item }: {item: any}) => (
+  const handlePlaceOrder = () => {
+    if (cartItems.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+    navigation.navigate('Place')
+  };
+
+  const renderCartItem = ({ item }: { item: any }) => (
     <View style={styles.cartItem}>
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.itemInfo}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.price}>{formatPrice(item.price)}</Text>
         <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={() => handleDecrease(item.id)} style={styles.quantityButton}>
+          <TouchableOpacity onPress={() => handleDecrease(item._id)} style={styles.quantityButton}>
             <Icon name="remove" size={20} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.quantity}>{item.quantity}</Text>
-          <TouchableOpacity onPress={() => handleIncrease(item.id)} style={styles.quantityButton}>
+          <TouchableOpacity onPress={() => handleIncrease(item._id)} style={styles.quantityButton}>
             <Icon name="add" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
+      <TouchableOpacity onPress={() => handleRemove(item._id)} style={styles.removeButton}>
         <Icon name="close" size={20} color="#000" />
       </TouchableOpacity>
-      <Text style={styles.totalItemPrice}>{formatPrice(item.price * item.quantity)}</Text>
+      <Text style={styles.totalItemPrice}>{formatPrice(parseInt(item.price.replace(/\D/g, '')) * item.quantity)}</Text>
     </View>
   );
 
-  const renderMemberItem = ({ item }: {item: any}) => (
+  const renderMemberItem = ({ item }: { item: any }) => (
     <View style={styles.memberItem}>
       <Text style={styles.memberName}>{item.name}</Text>
-      <TouchableOpacity onPress={() => handleRemoveMember(item.id)}>
+      <TouchableOpacity onPress={() => handleRemoveMember(item.email)}>
         <Icon name="close" size={20} color="#000" />
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Text style={styles.addMember}>+ add member</Text>
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={cartItems}
-        renderItem={renderCartItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-      />
-      <View style={styles.summary}>
-        <Text style={styles.summaryTitle}>Order Summary</Text>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal:</Text>
-          <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total Tax:</Text>
-          <Text style={styles.summaryValue}>{formatPrice(tax)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total:</Text>
-          <Text style={styles.summaryValue}>{formatPrice(subtotal + tax)}</Text>
-        </View>
-      </View>
-      <View style={styles.noteContainer}>
-        <Text style={styles.noteLabel}>Note:</Text>
-        <TextInput
-          style={styles.noteInput}
-          placeholder="abc..."
-          value={note}
-          onChangeText={setNote}
-        />
-      </View>
-      <TouchableOpacity style={styles.placeOrderButton}>
-        <Text style={styles.placeOrderText}>Place Order</Text>
-      </TouchableOpacity>
+    <>
+      <Header text='Your Cart' />
+      <View style={styles.container}>
+        <View style={styles.header}>
 
-      {/* Modal Add People */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add people</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Icon name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalLabel}>Emails</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., maria@gmail.com"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <FlatList
-              data={members}
-              renderItem={renderMemberItem}
-              keyExtractor={(item) => item.id}
-              style={styles.memberList}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.addButton]}
-                onPress={handleAddMember}
-              >
-                <Text style={styles.modalButtonText}>Add</Text>
-              </TouchableOpacity>
-            </View>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={styles.addMember}>+ add member</Text>
+
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={cartItems}
+          renderItem={renderCartItem}
+          keyExtractor={(item, index) => item._id?.toString() || index.toString()} // đảm bảo mỗi item có key
+          contentContainerStyle={styles.list}
+        />
+        <View style={styles.noteContainer}>
+          <Text style={styles.noteLabel}>Note:</Text>
+          <TextInput
+            style={styles.noteInput}
+            placeholder="abc..."
+            value={note}
+            onChangeText={() => {
+              setNote(note);
+              dispatch({ type: 'SET_NOTE_FOOD', payload: note });
+            }}
+          />
+        </View>
+        <View style={styles.summary}>
+          <Text style={styles.summaryTitle}>Order Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal:</Text>
+            <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Tax:</Text>
+            <Text style={styles.summaryValue}>{formatPrice(tax)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total:</Text>
+            <Text style={styles.summaryValue}>{formatPrice(subtotal + tax)}</Text>
           </View>
         </View>
-      </Modal>
-    </View>
+
+        <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
+          <Text style={styles.placeOrderText}>Place Order</Text>
+        </TouchableOpacity>
+
+        {/* Modal Add People */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add people</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Icon name="close" size={24} color="#000" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalLabel}>Emails</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="e.g., maria@gmail.com"
+                value={email}
+                onChangeText={setEmail}
+              />
+              <FlatList
+                data={members}
+                renderItem={renderMemberItem}
+                keyExtractor={(item) => item.email}
+                style={styles.memberList}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.addButton]}
+                  onPress={handleAddMember}
+                >
+                  <Text style={styles.modalButtonText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
+
   );
 };
 

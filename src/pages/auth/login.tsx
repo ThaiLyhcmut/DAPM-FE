@@ -11,6 +11,7 @@ import { Input, Password } from '../../components/intro/input';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { loginSuccess, loginFail } from '../../../actions/authActions';
+import { useApiClient } from '../../repositories/service';
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -18,8 +19,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  const handleLogin = () => {
+  const api = useApiClient();
+  const handleLogin = async () => {
     // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
@@ -29,8 +30,11 @@ export default function LoginScreen() {
     try {
       // Here you would typically make an API call
       // For now, we'll simulate a successful login
+      const response:any = await api.post('/api/auth/login', { email, password });
+      console.log('Login response:', response);
       dispatch(loginSuccess({ 
-        email,
+        ...response.data.user, 
+        token: response.data.token // Assuming response.data contains user data
         // Add other user data as needed
       }));
     } catch (err: any) {
@@ -50,8 +54,6 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={introStyles.container}>
       <View style={introStyles.Box}>
-        <Header text={"login"} />
-
         <View style={introStyles.main}>
           <Input 
             text={"Email"} 

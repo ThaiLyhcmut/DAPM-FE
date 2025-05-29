@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { use } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 
-const Header = () => {
+interface HeaderProps {
+  text?: string;
+}
+
+const Header = ({text}: HeaderProps) => {
+  const yourName = useSelector((state: any) => state.auth.user?.name) || 'Your name...';
+  const yourAvatar = useSelector((state: any) => state.auth.user?.avatar) || 'https://example.com/default-avatar.png'; // Thay bằng URL avatar mặc định
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>Smart Table</Text>
+      <Text style={styles.title}>{text}</Text>
       <View style={styles.userInfo}>
         <Image
-          source={{ uri: 'https://example.com/avatar.png' }} // Thay bằng URL avatar thực tế
+          source={{ uri: yourAvatar }}
           style={styles.avatar}
         />
-        <Text style={styles.username}>Your name...</Text>
+        <Text style={styles.username}>Xin chào {yourName}</Text>
         <TouchableOpacity>
           <Image
             source={{ uri: 'https://example.com/bell-icon.png' }} // Thay bằng icon chuông
@@ -28,6 +35,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     padding: 15,
     alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#f0f8ff', // Màu nền sáng
+    borderBottomWidth: 1,
+    borderBottomColor: '#dcdcdc', // Màu viền dưới
+    width: '100%',
     // display: "contents"
   },
   title: {

@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useApiClient } from '../../repositories/service';
+import { useDispatch } from 'react-redux';
+import { editProfile } from '../../../actions/authActions';
 
 const EditProfileScreen = ({ navigation }: { navigation: any}) => {
-  const [user, setUser] = useState({
-    avatar: 'https://via.placeholder.com/100', // Thay bằng đường dẫn avatar thực tế
-    name: 'Melissa Peters',
-    email: 'melissa@gmail.com',
-    phone: '0123456789',
-    address: 'Thuyet, DP Ho Chi Minh, Viet Nam',
-  });
-
-  const handleSave = () => {
+  const initialUser = useSelector((state: any) => state.auth.user);
+  const [user, setUser] = useState(initialUser);
+  const api = useApiClient();
+  const dispatch = useDispatch();
+  const handleSave = async () => {
     // Logic lưu thông tin (gửi API hoặc cập nhật state)
-    navigation.goBack();
+    try {
+      const response:any = await api.put('/api/users/profile', {
+        ...user
+      });
+      alert('Profile updated successfully!');
+      dispatch(editProfile({
+        ...response.data.user
+      }));
+      navigation.goBack();
+
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   return (

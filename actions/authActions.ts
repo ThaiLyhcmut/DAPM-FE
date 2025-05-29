@@ -2,7 +2,7 @@
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const LOGIN_FAIL = 'LOGIN_FAIL';
 export const LOGOUT = 'LOGOUT';
-
+export const EDIT_PROFILE = 'EDIT_PROFILE';
 // Action Creators
 export const loginSuccess = (userData: any) => {
   return {
@@ -21,5 +21,12 @@ export const loginFail = (error: string) => {
 export const logout = () => {
   return {
     type: LOGOUT
+  };
+};
+
+export const editProfile = (userData: any) => {
+  return {
+    type: EDIT_PROFILE,
+    payload: userData
   };
 };

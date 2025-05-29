@@ -1,49 +1,79 @@
-import React from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import BottomNavigation from '../../components/button/button';
+import Header from '../../components/header/header';
+import { useApiClient } from '../../repositories/service';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { HistoryStackParamList } from '../../../navigate';
+
 
 const HistoryScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<HistoryStackParamList>>();
   // Dữ liệu mẫu cho danh sách lịch sử giao dịch
-  const transactions = [
-    { id: '1', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '566.000đ' },
-    { id: '2', type: 'Thanh toán hóa đơn', date: '16/4/2025 8:15 PM', amount: '1.000.000đ' },
-    { id: '3', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
-    { id: '4', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
-    { id: '5', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
-    { id: '6', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
-  ];
+  const [transactions, setTransactions] = useState<any[]>([])
+  const cart = useSelector((state: any) => state.cart);
+  console.log(cart)
+  // ([
+  //   { _id: '1', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '566.000đ' },
+  //   { _id: '2', type: 'Thanh toán hóa đơn', date: '16/4/2025 8:15 PM', amount: '1.000.000đ' },
+  //   { _id: '3', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
+  //   { _id: '4', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
+  //   { _id: '5', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
+  //   { _id: '6', type: 'Cọc hóa đơn', date: '16/4/2025 8:15 PM', amount: '170.000đ' },
+  // ]);
+  const api = useApiClient();
+  useEffect(() => {
+    try {
+      const fetchTransactions = async () => {
+        const response: any = await api.get("/api/history/me");
+        setTransactions(response.data.reservations);
+      }
+      fetchTransactions();
+    }
+    catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  }, [cart]);
 
-  const renderTransaction = ({ item }: {item: any}) => (
-    <View style={styles.transactionItem}>
+  const renderTransaction = ({ item }: { item: any }) => (
+    <TouchableOpacity style={styles.transactionItem} onPress={() => {
+      navigation.navigate('HistoryDetail', { item: item });
+    }}>
       <View style={styles.icon}>
         <Text style={styles.iconText}>⏰</Text>
       </View>
       <View style={styles.transactionDetails}>
-        <Text style={styles.transactionType}>{item.type}</Text>
+        <Text style={styles.transactionType}>{item.paystatus}</Text>
         <Text style={styles.transactionDate}>{item.date}</Text>
       </View>
       <Text style={styles.transactionAmount}>{item.amount}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>History</Text>
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search bill"
-          placeholderTextColor="#888"
+    <>
+      <Header text='History' />
+      <View style={styles.container}>
+
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search bill"
+            placeholderTextColor="#888"
+          />
+        </View>
+        <FlatList
+          data={transactions}
+          renderItem={renderTransaction}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.transactionList}
         />
       </View>
-      <FlatList
-        data={transactions}
-        renderItem={renderTransaction}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.transactionList}
-      />
-    </View>
-    
+    </>
+
+
   );
 };
 

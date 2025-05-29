@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import Header from '../../components/header/header';
 import SearchBar from '../../components/search/search';
 import BottomNavigation from '../../components/button/button';
 import List from '../../components/list/list';
+import { useApiClient } from '../../repositories/service';
 
 const categories = [
   { name: 'All', image: 'https://example.com/all.png' },
@@ -41,14 +42,38 @@ const bestSales = [
 
 
 const HomeScreen = () => {
+  const [categories, setCategories] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [bestSales, setBestSales] = useState([]);
+  const api = useApiClient();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const responseCategories:any = await api.get("/api/categories");
+        const responseSales:any = await api.get("/api/categories");
+        const responseBestSales:any = await api.get("/api/foods");
+        setCategories(responseCategories.data.categories);
+        setSales(responseSales.data.categories);
+        setBestSales(responseBestSales.data.foods);
+      }
+      catch (error) {
+        console.error('Error fetching data:', error);
+      }
+
+    }
+    fetchData();
+  },[])
+  if (categories.length === 0 || sales.length === 0 || bestSales.length === 0) {
+    return <View style={styles.container}><Header /><SearchBar /><BottomNavigation /></View>;
+  }
   return (
     <View style={styles.container}>
-      <Header />
+      <Header text='Smart Table' />
       <ScrollView>
         <SearchBar />
         <List Data={categories} text='categories' />
         <List Data={sales} text='sales'/>
-        <List Data={bestSales} text='bestSales'/>
+        <List Data={bestSales} text='bestSales' Type='food'/>
       </ScrollView>
     </View>
   );

@@ -1,9 +1,14 @@
-import React from 'react';
-import { View, Text, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
+import React, { use, useEffect, useState } from 'react';
+import { View, Text, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import LoadingSpinner from '../../components/loading/loadSmall';
+import { useApiClient } from '../../repositories/service';
+import { RouteProp } from '@react-navigation/native';
+import { HomeStackParamList } from '../../../navigate';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
 
-const foodItems = [
+const data = [
   { name: 'Gà Chiên Mắm', image: 'https://example.com/ga-chien-mam.jpg', time: '25 min', rating: 4.5, price: '139.000 đ' },
   { name: 'Gà Quay', image: 'https://example.com/ga-quay.jpg', time: '25 min', rating: 4.5, price: '139.000 đ' },
   { name: 'Gà Sốt Chanh Dây', image: 'https://example.com/ga-sot-chanh.jpg', time: '25 min', rating: 4.5, price: '139.000 đ' },
@@ -13,9 +18,49 @@ const foodItems = [
   { name: 'Gà Rang Gừng', image: 'https://example.com/ga-rang-gung.jpg', time: '25 min', rating: 4.5, price: '129.000 đ' },
 ];
 
-const CategoriesListScreen = ({ category = 'Chicken' }) => {
+type ListCategoryScreenRouteProp = RouteProp<HomeStackParamList, 'CategoryList'>;
+
+type Props = {
+  route: ListCategoryScreenRouteProp;
+  navigation: NativeStackNavigationProp<HomeStackParamList>
+};
+
+const CategoriesListScreen = ({ route, navigation }: Props) => {
+  const { _id, category } = route.params;
+  console.log('Category:', _id);
+  const [foodItems, setFoodItems] = useState([]);
+  const api = useApiClient();
+  useEffect(() => {
+    const fetchFoodItems = async () => {
+      try {
+        const response:any = await api.get("/api/categories/" + _id);
+        setFoodItems(response.data.foods);
+      }
+      catch (error) {
+        console.error('Error fetching food items:', error);
+      }
+    }
+    fetchFoodItems();
+  }, []);
+  const handleDetailPress = (item: any) => {
+    if (!item) {
+      console.error('Item not found:', _id);
+      return;
+    }
+    navigation.navigate('CategoryDetail', {
+      item: {
+        _id: item._id,
+        name: item.name,
+        image: item.image,
+        time: item.time,
+        rating: item.rating,
+        price: item.price,
+      }
+    })
+  };
+  if (foodItems.length === 0) { return <LoadingSpinner size={300} />; }
   const renderItem = ({ item }: {item: any}) => (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => handleDetailPress(item)}>
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
@@ -25,7 +70,7 @@ const CategoriesListScreen = ({ category = 'Chicken' }) => {
         </View>
         <Text style={styles.price}>{item.price}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -34,7 +79,7 @@ const CategoriesListScreen = ({ category = 'Chicken' }) => {
       <FlatList
         data={foodItems}
         renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => item._id}
         contentContainerStyle={styles.list}
       />
     </View>

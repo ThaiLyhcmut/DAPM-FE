@@ -7,9 +7,9 @@ const invoiceData = {
   date: '8:15 PM',
   location: 'Bàn 8 Tầng 1',
   items: [
-    { id: '1', name: 'Cánh gà chiên mắm', price: 139000, quantity: 2, total: 278000 },
-    { id: '2', name: 'Gà quay', price: 139000, quantity: 1, total: 139000 },
-    { id: '3', name: 'Cánh gà chiên mắm', price: 139000, quantity: 1, total: 139000 },
+    { _id: '1', name: 'Cánh gà chiên mắm', price: 139000, quantity: 2, total: 278000 },
+    { _id: '2', name: 'Gà quay', price: 139000, quantity: 1, total: 139000 },
+    { _id: '3', name: 'Cánh gà chiên mắm', price: 139000, quantity: 1, total: 139000 },
   ],
   subtotal: 556000,
   discount: 10000,
@@ -18,19 +18,45 @@ const invoiceData = {
 
 // Dữ liệu mẫu cho thành viên
 const members = [
-  { id: '1', name: 'You', avatar: 'https://via.placeholder.com/30' },
-  { id: '2', name: 'Kacie', avatar: 'https://via.placeholder.com/30' },
-  { id: '3', name: 'Sienna', avatar: 'https://via.placeholder.com/30' },
-  { id: '4', name: 'Jack', avatar: 'https://via.placeholder.com/30' },
+  { _id: '1', name: 'You', avatar: 'https://via.placeholder.com/30' },
+  { _id: '2', name: 'Kacie', avatar: 'https://via.placeholder.com/30' },
+  { _id: '3', name: 'Sienna', avatar: 'https://via.placeholder.com/30' },
+  { _id: '4', name: 'Jack', avatar: 'https://via.placeholder.com/30' },
 ];
 
-const HistoryDetailScreen = () => {
+const HistoryDetailScreen = ({route: {params}} : any) => {
+  const { item } = params;
+  const members = item.friendlist.map((email: any, index: number) => {
+    return {
+      _id: index.toString(),
+      name: email.split('@')[0],
+      email: email,
+      avatar: "https://via.placeholder.com/30",
+    };
+  });
+  const invoiceData = {
+    date: item.date,
+    location: "Lầu " + item.table.floorId.name + '---' + "Bàn " + item.table.floor._id.slice(-2),
+    items: item.foodItem.map((food: any) => {
+      return {
+        _id: food._id,
+        name: food.name,
+        price: food.price,
+        quantity: food.quantity,
+        total: food.price * food.quantity,
+      };
+    }),
+    subtotal: item.subtotal,
+    discount: item.discount || 0,
+    tax: item.tax || 0,
+    total: item.total,
+  };
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.itemRow}>
       <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemPrice}>{item.price.toLocaleString()}đ</Text>
+      <Text style={styles.itemPrice}>{item.price.toLocaleString()}k</Text>
       <Text style={styles.itemQuantity}>x {item.quantity}</Text>
-      <Text style={styles.itemTotal}>{item.total.toLocaleString()}đ</Text>
+      <Text style={styles.itemTotal}>{item.total.toLocaleString()}k</Text>
     </View>
   );
 
@@ -61,7 +87,7 @@ const HistoryDetailScreen = () => {
           <FlatList
             data={invoiceData.items}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             style={styles.itemsList}
           />
         </View>
@@ -75,12 +101,11 @@ const HistoryDetailScreen = () => {
           <FlatList
             data={members}
             renderItem={renderMember}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             style={styles.memberList}
           />
         </View>
       </View>
-      <BottomNavigation />
     </>
 
   );

@@ -1,5 +1,5 @@
 // App.js
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useApiClient } from '../../repositories/service';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CartStackParamList } from '../../../navigate';
 const PlaceScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<CartStackParamList>>();
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [selectedTable, setSelectedTable] = useState('A6');
   const [selectedTableSize, setSelectedTableSize] = useState(8);
@@ -38,49 +44,40 @@ const PlaceScreen = () => {
     setTime(formattedTime);
     hideTimePicker();
   };
-  const floors: floorI[] = [
-    {
-      id: 1,
-      name: "1st floor",
-      tables: [
-        { id: 'A1', position: { top: 10, left: 60 }, available: true, member: 2 },
-        { id: 'A2', position: { top: 10, left: 180 }, available: true, member: 4 },
-        { id: 'A3', position: { top: 10, left: 250 }, available: true, member: 2 },
-        { id: 'A4', position: { top: 10, left: 180 }, available: true, member: 8 },
-        { id: 'A5', position: { top: 50, left: 120 }, available: true, member: 8 },
-        { id: 'A6', position: { top: 50, left: 60 }, available: true, member: 4 },
-        { id: 'A7', position: { top: 50, left: 180 }, available: true, member: 6 },
-        { id: 'A8', position: { top: 100, left: 60 }, available: true, member: 2 },
-        { id: 'A9', position: { top: 100, left: 180 }, available: true, member: 4 },
-        { id: 'A10', position: { top: 150, left: 120 }, available: true, member: 10 },
-      ]
-    },
-    {
-      id: 2,
-      name: "2nd floor",
-      tables: [
-        { id: 'B1', position: { top: 10, left: 60 }, available: true, member: 2 },
-        { id: 'B2', position: { top: 10, left: 180 }, available: true, member: 4 },
-        { id: 'B3', position: { top: 50, left: 60 }, available: true, member: 4 },
-        { id: 'B4', position: { top: 50, left: 180 }, available: true, member: 2 },
-        { id: 'B5', position: { top: 100, left: 120 }, available: true, member: 6 },
-        { id: 'B6', position: { top: 100, left: 60 }, available: true, member: 8 },
-        { id: 'B7', position: { top: 150, left: 180 }, available: true, member: 4 },
-        { id: 'B8', position: { top: 120, left: 120 }, available: true, member: 2 },
-        { id: 'B9', position: { top: 150, left: 50 }, available: true, member: 4 },
-        { id: 'B10', position: { top: 250, left: 120 }, available: true, member: 10 },
-      ]
-    }
-  ];
 
   interface floorI {
-    id: number,
+    _id: number,
     name: string,
     tables: any[],
   }
-  console.log(selectedFloor)
-  const [currentFloor, setCurrentFloor] = useState<floorI | undefined>(floors.find(f => f.id === selectedFloor));
+  
+  const [floors, setFloors] = useState<floorI[]>([]);
+  const api = useApiClient();
+  useEffect(() => {
+    const fetchFloors = async () => {
+      try {
+        const response: any = await api.get("/api/floors");
+        console.log('Fetched floors:', response);
+        response.data.floors.forEach(async (floor: any) => {
+          const responseTables: any = await api.get("/api/floors/" + floor._id);
+          console.log('Fetching tables for floor:', responseTables);
+          const data = {
+            _id: floor._id,
+            name: floor.name,
+            tables: responseTables.data.tables
+            }
+            setFloors(prevFloors => [...prevFloors, data]);
+            console.log('Fetched floor:', data);
+          });
+        }catch (error) {
+        console.error('Error fetching floors:', error);
+      }
+    }
+    fetchFloors();
 
+  }, []);
+  const [currentFloor, setCurrentFloor] = useState<floorI | undefined>(floors.find(f => f._id === selectedFloor));
+  console.log('floors:', floors);
 
   const handleTableSizeSelection = (size: any) => {
     setSelectedTableSize(size);
@@ -88,7 +85,7 @@ const PlaceScreen = () => {
 
   const handleFloorChange = (floorId: any) => {
     setSelectedFloor(floorId);
-    setCurrentFloor(floors.find(f => f.id === floorId))
+    setCurrentFloor(floors.find(f => f._id === floorId))
   };
 
   const handleTableSelection = (tableId: any) => {
@@ -108,16 +105,32 @@ const PlaceScreen = () => {
       <Text style={styles.tableIconText}>{tableIcons[size]}</Text>
     );
   };
+  const cart = useSelector((state: any) => state.cart);
+  const handleConfirmOrder = async () => {
+    const data = {
+      "tableId": selectedTable,
+      "date": date,
+      "time": time,
+      "note": note,
+      "friendList": cart.friendsList,
+      "foodItem": cart.items.map((item: any) => ({
+        "productId": item._id,
+        "quantity": item.quantity
+      })),
+      "notefood": cart.notefood
+    }
+    console.log('Creating reservation with data:', data);
+    try {
+      const response = await api.post("/api/reservations", data);
+      console.log('Reservation response:', response);
+      navigation.navigate("Payment");
+    } catch (error) {
+      alert('Table is not available, please choose another table');
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Place Order</Text>
-      </View>
-
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>List available tables</Text>
@@ -153,24 +166,18 @@ const PlaceScreen = () => {
             <View style={styles.floorSelectorHeader}>
               <Text style={styles.floorSelectorTitle}>Select table</Text>
               <View style={styles.floorToggleContainer}>
-                <TouchableOpacity
-                  onPress={() => handleFloorChange(1)}
-                  style={[
-                    styles.floorToggleButton,
-                    selectedFloor === 1 && styles.floorToggleButtonSelected
-                  ]}
-                >
-                  <Text style={styles.floorToggleText}>1st floor</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleFloorChange(2)}
-                  style={[
-                    styles.floorToggleButton,
-                    selectedFloor === 2 && styles.floorToggleButtonSelected
-                  ]}
-                >
-                  <Text style={styles.floorToggleText}>2nd floor</Text>
-                </TouchableOpacity>
+                {floors.map((floor) => (
+                  <TouchableOpacity
+                    key={floor._id}
+                    onPress={() => handleFloorChange(floor._id)}
+                    style={[
+                      styles.floorToggleButton,
+                      selectedFloor === floor._id && styles.floorToggleButtonSelected
+                    ]}
+                  >
+                    <Text style={styles.floorToggleText}>{floor.name}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </View>
@@ -179,21 +186,21 @@ const PlaceScreen = () => {
           <View style={styles.floorLayout}>
             {currentFloor?.tables.map((table) => table.member === selectedTableSize && (
               <TouchableOpacity
-                key={table.id}
+                key={table._id}
                 style={[
                   styles.tableButton,
                   { top: table.position.top, left: table.position.left },
-                  selectedTable === table.id && styles.tableButtonSelected
+                  selectedTable === table._id && styles.tableButtonSelected
                 ]}
-                onPress={() => handleTableSelection(table.id)}
+                onPress={() => handleTableSelection(table._id)}
               >
                 <Text
                   style={[
                     styles.tableButtonText,
-                    selectedTable === table.id && styles.tableButtonTextSelected
+                    selectedTable === table._id && styles.tableButtonTextSelected
                   ]}
                 >
-                  {table.id}
+                  {table._id.slice(-2)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -208,6 +215,17 @@ const PlaceScreen = () => {
 
           {/* Opening hours notice */}
           <Text style={styles.openingHours}>Note: The restaurant is open from 4pm to 11pm</Text>
+
+          {/* Note field */}
+          <View style={styles.noteContainer}>
+            <Text style={styles.noteLabel}>Note</Text>
+            <TextInput
+              style={styles.noteInput}
+              value={note}
+              onChangeText={setNote}
+              multiline
+            />
+          </View>
 
           {/* Time picker */}
           <TouchableOpacity style={styles.inputContainer} onPress={showTimePicker}>
@@ -247,19 +265,10 @@ const PlaceScreen = () => {
             onCancel={hideTimePicker}
           />
 
-          {/* Note field */}
-          <View style={styles.noteContainer}>
-            <Text style={styles.noteLabel}>Note</Text>
-            <TextInput
-              style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              multiline
-            />
-          </View>
+          
 
           {/* Confirm button */}
-          <TouchableOpacity style={styles.confirmButton}>
+          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmOrder}>
             <Text style={styles.confirmButtonText}>Confirm ✓</Text>
           </TouchableOpacity>
         </View>

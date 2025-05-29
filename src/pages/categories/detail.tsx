@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '../../../navigate';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../../actions/cartActions';
 
 const { width } = Dimensions.get('window');
 
@@ -14,15 +16,19 @@ type Props = {
 
 const CategoryDetailScreen = ({ route }: Props) => {
   const { item } = route.params;
+  const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
 
   const handleIncrease = () => setQuantity(quantity + 1);
   const handleDecrease = () => quantity > 1 && setQuantity(quantity - 1);
 
   const totalPrice = (parseInt(item.price.replace(/\D/g, '')) * quantity) / 1000 + 'k đ';
-
+  const handleAddToCart = () => {
+    // Logic to add item to cart
+    dispatch(addToCart({ ...item, quantity }));
+  };
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
@@ -48,29 +54,30 @@ const CategoryDetailScreen = ({ route }: Props) => {
         <Text style={styles.totalText}>Total</Text>
         <Text style={styles.totalPrice}>{totalPrice}</Text>
       </View>
-      <TouchableOpacity style={styles.orderButton}>
+      <TouchableOpacity style={styles.orderButton} onPress={handleAddToCart}>
+        <Icon name="cart" size={20} color="#fff" />
         <Text style={styles.orderButtonText}>Order</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
     backgroundColor: '#fff',
   },
   image: {
     width: width - 20,
     height: 300,
     borderRadius: 10,
-    marginBottom: 10,
+    margin: 10,
   },
   info: {
     padding: 10,
     backgroundColor: '#4682B4',
     borderRadius: 10,
+    marginHorizontal: 10,
     marginBottom: 10,
   },
   name: {
@@ -142,6 +149,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     alignItems: 'center',
+    marginHorizontal: 10,
+    marginBottom: 20, // Add margin to ensure button is not cut off
   },
   orderButtonText: {
     color: '#fff',
