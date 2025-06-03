@@ -7,6 +7,7 @@ import { HomeStackParamList } from '../../../navigate';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
+import * as Sentry from "@sentry/react-native";
 
 const data = [
   { name: 'Gà Chiên Mắm', image: 'https://example.com/ga-chien-mam.jpg', time: '25 min', rating: 4.5, price: '139.000 đ' },
@@ -38,6 +39,7 @@ const CategoriesListScreen = ({ route, navigation }: Props) => {
       }
       catch (error) {
         console.error('Error fetching food items:', error);
+        Sentry.captureException(error)
       }
     }
     fetchFoodItems();

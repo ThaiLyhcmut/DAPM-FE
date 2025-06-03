@@ -23,12 +23,24 @@ import EditProfileScreen from './src/pages/auth/editProfile';
 import PaymentScreen from './src/pages/payment/payment'; 
 import CategoriesListScreen from './src/pages/categories/listDetail'; 
 import CategoryDetailScreen from './src/pages/categories/detail'; 
+import BookTableScreen from './src/pages/onboard/bookTableScreen';
+import FreshMealsScreen from './src/pages/onboard/freshMealsScreen';
+import OrderTogetherScreen from './src/pages/onboard/orderTogotherScreen';
+import SmartTableScreen from './src/pages/onboard/smartTableScreen';
 
 type RootStackParamList = {
   Main: undefined;
   Payment: undefined;
   EditProfile: undefined;
+  OnBoard: undefined
 };
+
+export type OnboardStackParamList = {
+  SmartTable: undefined
+  FreshMeals: undefined
+  BookTable: undefined
+  OrderTogether: undefined
+}
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -58,7 +70,6 @@ export type HomeStackParamList = {
   };
 };
 
-
 export type HistoryStackParamList = {
   HistoryList: undefined;
   HistoryDetail: {
@@ -85,6 +96,7 @@ const AuthStack = createStackNavigator<AuthStackParamList>();
 const HomeStack = createStackNavigator<HomeStackParamList>();
 const HistoryStack = createStackNavigator<HistoryStackParamList>();
 const CartStack = createStackNavigator<CartStackParamList>();
+const OnBoard = createStackNavigator<OnboardStackParamList>();
 
 // Stack cho xác thực
 function AuthStackScreen() {
@@ -112,6 +124,18 @@ function HomeStackScreen() {
   );
 }
 
+function OnBoardStackScreen() {
+  return (
+    <OnBoard.Navigator>
+      <OnBoard.Screen name="SmartTable" component={SmartTableScreen}/>
+      <OnBoard.Screen name="BookTable" component={BookTableScreen}/>
+      <OnBoard.Screen name="FreshMeals" component={FreshMealsScreen}/>
+      <OnBoard.Screen name="OrderTogether" component={OrderTogetherScreen}/>
+      
+    </OnBoard.Navigator>
+  )
+}
+
 function CartStackScreen() {
   return (
     <CartStack.Navigator>
@@ -134,27 +158,29 @@ function HistoryStackScreen() {
 
 // Stack chính của ứng dụng
 export default function MainStack() {
-  const isSignedIn = useSelector((state: RootState) => state.auth.isSignedIn);
-
-  return (
-    <>
-      {isSignedIn ? (
-        <Stack.Navigator
-          
-        >
-          <Stack.Screen 
-            name="Main" 
-            component={MainTabs} 
-            options={{ headerShown: false }} 
-          />
-          <Stack.Screen name="Payment" component={PaymentScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-        </Stack.Navigator>
-      ) : (
-        <AuthStackScreen />
-      )}
-    </>
-  );
+  const {isSignedIn, isOnBoard} = useSelector((state: RootState) => state.auth);
+  console.log(isOnBoard)
+  const onBoard = Boolean(isOnBoard)
+  console.log(!onBoard)
+    return (
+      <>
+        {!onBoard ? (
+          <OnBoardStackScreen />
+        ) : isSignedIn ? (
+          <Stack.Navigator>
+            <Stack.Screen 
+              name="Main" 
+              component={MainTabs} 
+              options={{ headerShown: false }} 
+            />
+            <Stack.Screen name="Payment" component={PaymentScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          </Stack.Navigator>
+        ) : (
+          <AuthStackScreen />
+        )}
+      </>
+    );
 }
 
 // Tab bar chính

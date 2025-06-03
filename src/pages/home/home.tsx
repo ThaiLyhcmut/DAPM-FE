@@ -29,6 +29,7 @@ const sales = [
   { name: 'Món Ăn Vặt Giảm 15%', image: 'https://example.com/mon-an-vat.jpg' },
   // Thêm các mục khác nếu cần
 ];
+import * as Sentry from "@sentry/react-native";
 
 const bestSales = [
   { name: 'Gà chiên mắm đầy', image: 'https://example.com/ga-chien-mam.jpg' },
@@ -58,6 +59,7 @@ const HomeScreen = () => {
       }
       catch (error) {
         console.error('Error fetching data:', error);
+        Sentry.captureException(error)
       }
 
     }

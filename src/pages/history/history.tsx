@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HistoryStackParamList } from '../../../navigate';
-
+import * as Sentry from "@sentry/react-native";
 
 const HistoryScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<HistoryStackParamList>>();
@@ -34,6 +34,7 @@ const HistoryScreen = () => {
     }
     catch (error) {
       console.error('Error fetching transactions:', error);
+      Sentry.captureException(error)
     }
   }, [cart]);
 

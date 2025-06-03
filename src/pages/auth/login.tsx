@@ -6,6 +6,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { introStyles } from '../../styles/intro';
+import * as Sentry from "@sentry/react-native";
 import { Header } from '../../components/intro/header'; 
 import { Input, Password } from '../../components/intro/input';
 import { useNavigation } from '@react-navigation/native';
@@ -40,6 +41,7 @@ export default function LoginScreen() {
     } catch (err: any) {
       dispatch(loginFail(err.message));
       setError('Login failed. Please try again.');
+      Sentry.captureException(err);
     }
   };
 

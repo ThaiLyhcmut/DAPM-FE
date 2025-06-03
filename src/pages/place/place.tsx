@@ -16,6 +16,8 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CartStackParamList } from '../../../navigate';
+import * as Sentry from "@sentry/react-native";
+
 const PlaceScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<CartStackParamList>>();
   const [selectedFloor, setSelectedFloor] = useState(1);
@@ -71,6 +73,7 @@ const PlaceScreen = () => {
           });
         }catch (error) {
         console.error('Error fetching floors:', error);
+        Sentry.captureException(error)
       }
     }
     fetchFloors();

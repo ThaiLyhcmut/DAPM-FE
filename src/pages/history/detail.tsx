@@ -26,11 +26,11 @@ const members = [
 
 const HistoryDetailScreen = ({route: {params}} : any) => {
   const { item } = params;
-  const members = item.friendlist.map((email: any, index: number) => {
+  const members = item.friendlist.map((data: any, index: number) => {
     return {
       _id: index.toString(),
-      name: email.split('@')[0],
-      email: email,
+      name: data.email.split('@')[0],
+      email: data.email,
       avatar: "https://via.placeholder.com/30",
     };
   });
